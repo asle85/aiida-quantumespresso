@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-import collections
+from six import iteritems
 import os
 
 from aiida.common.exceptions import InputValidationError
@@ -140,7 +140,7 @@ class BasePwCpInputGenerator(object):
         input_params = _uppercase_dict(parameters.get_dict(),
                                        dict_name='parameters')
         input_params = {k: _lowercase_dict(v, dict_name=k)
-                        for k, v in input_params.iteritems()}
+                        for k, v in iteritems(input_params)}
 
         # I remove unwanted elements (for the moment, instead, I stop; to change when
         # we setup a reasonable logging)
@@ -454,7 +454,7 @@ class BasePwCpInputGenerator(object):
             # namelist content; set to {} if not present, so that we leave an 
             # empty namelist
             namelist = input_params.pop(namelist_name, {})
-            for k, v in sorted(namelist.iteritems()):
+            for k, v in sorted(iteritems(namelist)):
                 inputfile += convert_input_to_namelist_entry(k, v, mapping=mapping_species)
             inputfile += "/\n"
     
@@ -656,7 +656,7 @@ class BasePwCpInputGenerator(object):
                 self._ENVIRON_INPUT_FILE_NAME)
             with open(environ_input_filename, 'w') as environ_infile:
                 environ_infile.write("&ENVIRON\n")
-                for k, v in sorted(environ_namelist.iteritems()):
+                for k, v in sorted(iteritems(environ_namelist)):
                     environ_infile.write(
                         convert_input_to_namelist_entry(k, v, mapping=mapping_species))
                 environ_infile.write("/\n")
@@ -797,7 +797,7 @@ class BasePwCpInputGenerator(object):
         # Will contain a list of all species of the pseudo with given PK
         pseudo_species = defaultdict(list)
 
-        for kindname, pseudo in kind_pseudo_dict.iteritems():
+        for kindname, pseudo in iteritems(kind_pseudo_dict):
             pseudo_dict[pseudo.pk] = pseudo
             pseudo_species[pseudo.pk].append(kindname)
 
@@ -941,7 +941,7 @@ class BasePwCpInputGenerator(object):
 
         c2._set_parent_remotedata(remote_folder)
         # set links for pseudos
-        for linkname, input_node in self.get_inputs_dict().iteritems():
+        for linkname, input_node in iteritems(self.get_inputs_dict()):
             if isinstance(input_node, UpfData):
                 c2.add_link_from(input_node, label=linkname)
 
@@ -962,7 +962,7 @@ def _lowercase_dict(d, dict_name):
 
     if not isinstance(d, dict):
         raise TypeError("_lowercase_dict accepts only dictionaries as argument, while you gave {}".format(type(d)))
-    new_dict = dict((str(k).lower(), v) for k, v in d.iteritems())
+    new_dict = dict((str(k).lower(), v) for k, v in iteritems(d))
     if len(new_dict) != len(d):
         num_items = Counter(str(k).lower() for k in d.keys())
         double_keys = ",".join([k for k, v in num_items if v > 1])
@@ -978,7 +978,7 @@ def _uppercase_dict(d, dict_name):
 
     if not isinstance(d, dict):
         raise TypeError("_uppercase_dict accepts only dictionaries as argument, while you gave {}".format(type(d)))
-    new_dict = dict((str(k).upper(), v) for k, v in d.iteritems())
+    new_dict = dict((str(k).upper(), v) for k, v in iteritems(d))
     if len(new_dict) != len(d):
         num_items = Counter(str(k).upper() for k in d.keys())
         double_keys = ",".join([k for k, v in num_items if v > 1])

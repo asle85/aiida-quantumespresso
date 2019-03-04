@@ -86,6 +86,8 @@ def convert_input_to_namelist_entry(key, val, mapping=None):
 
         This will map every occurrence of 'Fe' and 'O' in the values to the corresponding integer.
     """
+    import six
+
     from aiida.common.utils import conv_to_fortran
 
     # I don't try to do iterator=iter(val) and catch TypeError because it would also match strings
@@ -113,7 +115,7 @@ def convert_input_to_namelist_entry(key, val, mapping=None):
         return ''.join(list_of_strings)
 
     # A list/array/tuple of values
-    elif hasattr(val, '__iter__'):
+    elif hasattr(val, '__iter__') and not isinstance(val, six.string_types):
 
         list_of_strings = []
 
