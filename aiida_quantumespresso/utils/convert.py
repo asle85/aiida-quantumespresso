@@ -111,7 +111,7 @@ def convert_input_to_namelist_entry(key, val, mapping=None):
             list_of_strings.append((idx, '  {0}({2}) = {1}\n'.format(key, conv_to_fortran(itemval), idx)))
 
         # I first have to resort, then to remove the index from the first column, finally to join the strings
-        list_of_strings = zip(*sorted(list_of_strings))[1]
+        list_of_strings = list(zip(*sorted(list_of_strings)))[1]
         return ''.join(list_of_strings)
 
     # A list/array/tuple of values
