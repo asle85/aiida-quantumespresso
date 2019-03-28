@@ -102,7 +102,7 @@ def convert_input_to_namelist_entry(key, val, mapping=None):
         # second is the actual line. This is used at the end to resort everything.
         list_of_strings = []
 
-        for elemk, itemval in val.iteritems():
+        for elemk, itemval in six.iteritems(val):
             try:
                 idx = mapping[elemk]
             except KeyError:
