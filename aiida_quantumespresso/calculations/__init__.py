@@ -124,7 +124,7 @@ class BasePwCpInputGenerator(object):
             },
         }
 
-    def _generate_PWCPinputdata(self,parameters,settings_dict,pseudos,structure,kpoints=None):
+    def _generate_PWCPinputdata(self,parameters,settings_dict,pseudos,structure,kpoints=None,use_fractional=False):
         """
         This method creates the content of an input file
         in the PW/CP format.
@@ -241,8 +241,6 @@ class BasePwCpInputGenerator(object):
         del atomic_species_card_list
 
         # ------------ ATOMIC_POSITIONS -----------
-        atomic_positions_card_list = ["ATOMIC_POSITIONS angstrom\n"]
-
         # Check on validity of FIXED_COORDS
         fixed_coords_strings = []
         fixed_coords = settings_dict.pop('FIXED_COORDS', None)
@@ -271,12 +269,32 @@ class BasePwCpInputGenerator(object):
                 fixed_coords_strings.append(
                     "  {:d} {:d} {:d}".format(*if_pos_values))
 
-        for site, fixed_coords_string in zip(
-                structure.sites, fixed_coords_strings):
-            atomic_positions_card_list.append(
-                "{0} {1:18.10f} {2:18.10f} {3:18.10f} {4}\n".format(
-                    site.kind_name.ljust(6), site.position[0], site.position[1],
-                    site.position[2], fixed_coords_string))
+        if use_fractional:
+            import numpy
+            atomic_positions_card_list = ["ATOMIC_POSITIONS crystal\n"]
+            vectors = structure.cell
+            a = vectors[0]
+            b = vectors[1]
+            c = vectors[2]
+            s_a = numpy.cross(b, c)
+            V = numpy.dot(a, s_a)
+            s_a = numpy.true_divide(s_a, V)
+            s_b = numpy.true_divide(numpy.cross(c, a), V)
+            s_c = numpy.true_divide(numpy.cross(a, b), V)
+            for site, fixed_coords_string in zip(
+                    structure.sites, fixed_coords_strings):
+                atomic_positions_card_list.append(
+                    "{0} {1:18.10f} {2:18.10f} {3:18.10f} {4}\n".format(
+                        site.kind_name.ljust(6), numpy.dot(site.position[0], s_a),
+                        numpy.dot(site.position[1], s_b), numpy.dot(site.position[2], s_c), fixed_coords_string))
+        else:
+            atomic_positions_card_list = ["ATOMIC_POSITIONS angstrom\n"]
+            for site, fixed_coords_string in zip(
+                    structure.sites, fixed_coords_strings):
+                atomic_positions_card_list.append(
+                    "{0} {1:18.10f} {2:18.10f} {3:18.10f} {4}\n".format(
+                        site.kind_name.ljust(6), site.position[0], site.position[1],
+                        site.position[2], fixed_coords_string))
         atomic_positions_card = "".join(atomic_positions_card_list)
         del atomic_positions_card_list
 
