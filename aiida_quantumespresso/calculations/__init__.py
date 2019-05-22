@@ -270,22 +270,17 @@ class BasePwCpInputGenerator(object):
                     "  {:d} {:d} {:d}".format(*if_pos_values))
 
         if use_fractional:
-            import numpy
+            import numpy as np
             atomic_positions_card_list = ["ATOMIC_POSITIONS crystal\n"]
-            a = structure.cell[0]
-            b = structure.cell[1]
-            c = structure.cell[2]
-            s_a = numpy.cross(b, c)
-            V = numpy.dot(a, s_a)
-            s_a = numpy.true_divide(s_a, V)
-            s_b = numpy.true_divide(numpy.cross(c, a), V)
-            s_c = numpy.true_divide(numpy.cross(a, b), V)
-            for site, fixed_coords_string in zip(
-                    structure.sites, fixed_coords_strings):
+            cell = np.array(structure.cell)
+            abs_pos = np.array([_.position for _ in structure.sites])
+            rel_pos = np.dot(abs_pos, np.linalg.inv(cell))
+            for site, site_rel_coords, fixed_coords_string in zip(
+                    structure.sites, rel_pos, fixed_coords_strings):
                 atomic_positions_card_list.append(
                     "{0} {1:18.10f} {2:18.10f} {3:18.10f} {4}\n".format(
-                        site.kind_name.ljust(6), numpy.dot(site.position, s_a),
-                        numpy.dot(site.position, s_b), numpy.dot(site.position, s_c), fixed_coords_string))
+                        site.kind_name.ljust(6), site_rel_coords[0], site_rel_coords[1],
+                        site_rel_coords[2], fixed_coords_string))
         else:
             atomic_positions_card_list = ["ATOMIC_POSITIONS angstrom\n"]
             for site, fixed_coords_string in zip(
